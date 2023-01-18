@@ -1,0 +1,236 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Результаты прохождения теста</title>
+    <style>
+        * {
+            font-family: Arial;
+        }
+        td {
+            padding: 5px;
+        }
+
+        button {
+            margin: 5px;
+        }
+        .content {
+            width: 1000px;
+            position: absolute;
+            left: 50%;
+            margin-left: -500px;
+            margin-top: 100px;
+        }
+        .FormsContainer{
+            margin-top: 50px;
+        }
+        h2 {
+            margin-left: 350px;
+            font-size: 22px;
+        }
+        table {
+            margin-left: 150px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div class="TableContainer">
+            <h2>Список пользователей</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>№ теста</th>
+                        <th>Результат</th>
+                        <th>№ пользователя</th>
+                        <th>Время прохождения</th>
+                        <th>Комментарий</th>
+                        <th>Статус</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="FormsContainer">
+            <input type="hidden" id="ResultId" />
+            <p>
+                <label for="Result">Результат</label>
+                <input id="Result" type="text" />
+            </p>
+            <p>
+                <label for="Comment">Комментарий</label>
+                <input id="Comment" type="text" />
+            </p>
+            <p>
+                <label for="Status">Статус</label>
+                <input id="Status" type="text" />
+            </p>
+            <p>
+                <button id="saveBtn">Сохранить</button>
+                <button id="resetBtn">Сбросить</button>
+            </p>
+        </div>
+
+    </div>
+
+
+    <script>
+        async function getResults() {
+
+            const response = await fetch("/results", {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+
+            if (response.ok === true) {
+
+                const results = await response.json();
+                const rows = document.querySelector("tbody");
+
+                results.forEach(result => rows.append(row(result)));
+            }
+        }
+        // Получение одного пользователя
+        async function getUser(id) {
+            const response = await fetch(`/results/${id}`, {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const result = await response.json();
+                document.getElementById("ResultId").value = result.id;
+                document.getElementById("Result").value = result.resultContent;
+                document.getElementById("Comment").value = result.comment;
+                document.getElementById("Status").value = result.status;
+            }
+            else {
+                // если произошла ошибка, получаем сообщение об ошибке
+                const error = await response.json();
+                console.log(error.message); // и выводим его на консоль
+            }
+        }
+
+        // Изменение пользователя
+        async function editUser(resultId, resultContent, comment, status) {
+            let updatedRes = {
+                Id : resultId,
+                ResultContent : resultContent,
+                Comment : comment,
+                Status : status
+            };
+
+            const response = await fetch("/results", {
+                method: "PUT",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify(updatedRes)
+            });
+            if (response.ok === true) {
+                const result = await response.json();
+                document.querySelector(`tr[data-rowid='${result.id}']`).replaceWith(row(result));
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+        // Удаление пользователя
+        async function deleteUser(id) {
+            const response = await fetch(`/results/${id}`, {
+                method: "DELETE",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const result = await response.json();
+                document.querySelector(`tr[data-rowid='${result.id}']`).remove();
+            }
+            else {
+                const error = await response.json();
+                console.log(error.message);
+            }
+        }
+
+        // сброс данных формы после отправки
+        function reset() {
+            document.getElementById("ResultId").value =
+                document.getElementById("Result").value =
+                document.getElementById("Comment").value =
+                document.getElementById("Status").value = "";
+        }
+        // создание строки для таблицы
+        function row(result) {
+
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-rowid", result.id);
+
+            const NumResTd = document.createElement("td");
+            NumResTd.append(result.id);
+            tr.append(NumResTd);
+
+            const NumTestTd = document.createElement("td");
+            NumTestTd.append(result.testId);
+            tr.append(NumTestTd);
+
+            const ResultTd = document.createElement("td");
+            ResultTd.append(result.resultContent);
+            tr.append(ResultTd);
+
+            const NumUserTd = document.createElement("td");
+            NumUserTd.append(result.userId);
+            tr.append(NumUserTd);
+
+            const DateTd = document.createElement("td");
+
+            DateTd.append(result.closedTestTime);
+            tr.append(DateTd);
+
+            const CommentTd = document.createElement("td");
+            CommentTd.append(result.comment);
+            tr.append(CommentTd);
+
+            const StatusTd = document.createElement("td");
+            StatusTd.append(result.status);
+            tr.append(StatusTd);
+
+            const linksTd = document.createElement("td");
+
+            const editLink = document.createElement("button");
+            editLink.append("Изменить");
+            editLink.addEventListener("click", async () => await getUser(result.id));
+            linksTd.append(editLink);
+
+            const removeLink = document.createElement("button");
+            removeLink.append("Удалить");
+            removeLink.addEventListener("click", async () => await deleteUser(result.id));
+
+            linksTd.append(removeLink);
+            tr.appendChild(linksTd);
+
+            return tr;
+        }
+        // сброс значений формы
+        document.getElementById("resetBtn").addEventListener("click", () => reset());
+
+        // отправка формы
+        document.getElementById("saveBtn").addEventListener("click", async () => {
+
+            const id = document.getElementById("ResultId").value;
+            const content = document.getElementById("Result").value;
+            const comment = document.getElementById("Comment").value;
+            const status = document.getElementById("Status").value;
+
+            if (id === "")
+                alert("Не выбран результат для изменения");
+            else
+                await editUser(id, content, comment, status);
+            reset();
+        });
+
+        // загрузка пользователей
+        getResults();
+    </script>
+</body>
+</html>

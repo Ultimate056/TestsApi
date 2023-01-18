@@ -1,0 +1,164 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Прохождение теста</title>
+    <style>
+
+        * {
+            font-family: Arial;
+        }
+
+
+        h2 {
+            margin-left: 50px;
+        }
+
+        #number_q {
+            width: 40px;
+            font-size: 22px;
+            border-style: none;
+            color: #3D0539;
+        }
+
+        #name_q {
+            margin-left: 25px;
+            width: 700px;
+            height: 30px;
+            font-size: 22px;
+            padding-left: 5px;
+            border-style: none;
+            color: #3D0539;
+        }
+
+        .body {
+        }
+
+        .content {
+            width: 1000px;
+            position: absolute;
+            left: 50%;
+            margin-left: -500px;
+            margin-top: 100px;
+        }
+
+        input[type="button"] {
+            width: 350px;
+            border-radius: 10px; /* Уголки */
+            font-size: 18px;
+        }
+
+            input[type="button"]:hover {
+                background-color: #F2ABED;
+            }
+
+        hr {
+            padding: 0;
+            height: 0;
+            border: none;
+            border-top: 2px solid black;
+            border-bottom: 2px solid #F2ABED;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h2>Тест А</h2>
+        <div class="header_content">
+            <input type="text" readonly id="number_q" name="num_q" value="" />
+            <input type="text" readonly id="name_q" name="name_q" value="" />
+        </div>
+        <hr />
+        <div class="answers_container">
+            <p><input type="button" id="ans1" name="ans1" value="" /></p>
+            <p><input type="button" id="ans2" name="ans2" value="" /></p>
+            <p><input type="button" id="ans3" name="ans3" value="" /></p>
+        </div>
+    </div>
+
+
+    <script>
+
+        var counterQ = 0;
+        var counterA = 0;
+        var tvm;
+        var new_tvm = [];
+        var counter = 0;
+        var countQuest;
+        async function getTest(id) {
+            const response = await fetch(`/Test/${id}`, {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                tvm = await response.json();
+                console.log(tvm);
+
+                countQuest = tvm.questions.length;
+
+                UpdateQuest();
+            }
+        }
+        getTest(1);
+
+
+        async function FinalTest(nt) {
+
+            const response = await fetch("/Test", {
+                method: "POST",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify(nt)
+            });
+            if (response.ok === true) {
+                window.alert("Тест успешно пройден!");
+                console.log(nt);
+            }
+        }
+
+        function UpdateQuest() {
+            console.log(counterQ);
+            console.log(new_tvm);
+            if (counterQ == countQuest) {
+                FinalTest(new_tvm);
+            }
+            else {
+                document.getElementById("number_q").value = `${counterQ + 1} / ${countQuest}`;
+
+                document.getElementById("name_q").value = tvm.questions[counterQ++].content;
+
+                document.getElementById("ans1").value = tvm.allAnswers[counterA++].content;
+                document.getElementById("ans2").value = tvm.allAnswers[counterA++].content;
+                document.getElementById("ans3").value = tvm.allAnswers[counterA++].content;
+            }
+        }
+
+        // Добавляет ответ пользователя в список ответов пользователя
+        function AddUserAnswer(position) {
+            let answer = {
+                Id: counter,
+                Content: document.getElementById(position).value,
+                QuestionId: counterQ
+            };
+            new_tvm.push(answer);
+            counter++;
+        }
+
+        document.getElementById("ans1").addEventListener("click", () => {
+            AddUserAnswer("ans1");
+            UpdateQuest();
+
+        });
+        document.getElementById("ans2").addEventListener("click", () => {
+            AddUserAnswer("ans2");
+            UpdateQuest();
+        });
+        document.getElementById("ans3").addEventListener("click", () => {
+            AddUserAnswer("ans3");
+            UpdateQuest();
+        });
+
+
+    </script>
+</body>
+</html>
