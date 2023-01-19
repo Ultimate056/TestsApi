@@ -33,7 +33,8 @@ app.MapGet("/test/{id}", (int id, TestsContext db, HttpContext context) =>
 
     TestViewModel vm = new TestViewModel(db, test);
 
-    int counter = db.Results.Count();
+    var lastRes = db.Results.OrderBy(u=> u.Id).LastOrDefault();
+    int counter = lastRes.Id;
     counter++;
 
     result = new Result { Id = counter, TestId = test.Id, Status = "Тест начался" };
