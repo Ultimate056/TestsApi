@@ -19,5 +19,6 @@
                 AllAnswers?.AddRange(db.Answers.Where(u => u.QuestionId == q.Id));
             }
         }
+
     }
 }

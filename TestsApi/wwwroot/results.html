@@ -119,7 +119,7 @@
     <script>
         async function getResults() {
 
-            const response = await fetch("/results", {
+            const response = await fetch("/api/Results", {
                 method: "GET",
                 headers: { "Accept": "application/json" }
             });
@@ -134,7 +134,7 @@
         }
         // Получение одного пользователя
         async function getUser(id) {
-            const response = await fetch(`/results/${id}`, {
+            const response = await fetch(`/api/Results/${id}`, {
                 method: "GET",
                 headers: { "Accept": "application/json" }
             });
@@ -161,7 +161,7 @@
                 Status : status
             };
 
-            const response = await fetch("/results", {
+            const response = await fetch("/api/Results", {
                 method: "PUT",
                 headers: { "Accept": "application/json", "Content-Type": "application/json" },
                 body: JSON.stringify(updatedRes)
@@ -177,7 +177,7 @@
         }
         // Удаление пользователя
         async function deleteUser(id) {
-            const response = await fetch(`/results/${id}`, {
+            const response = await fetch(`/api/Results/${id}`, {
                 method: "DELETE",
                 headers: { "Accept": "application/json" }
             });
